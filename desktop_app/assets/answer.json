@@ -1,0 +1,110 @@
+{
+    "plate01": {
+        "type": "demo",
+        "normal": "12",
+        "protan": "12",
+        "deutan": "12"
+    },
+
+    "plate02": {
+        "type": "transform",
+        "normal": "57",
+        "protan": "35",
+        "deutan": "35"
+    },
+
+    "plate03": {
+        "type": "transform",
+        "normal": "29",
+        "protan": "70",
+        "deutan": "70"
+    },
+
+    "plate04": {
+        "type": "transform",
+        "normal": "5",
+        "protan": "2",
+        "deutan": "2"
+    },
+
+    "plate05": {
+        "type": "transform",
+        "normal": "3",
+        "protan": "5",
+        "deutan": "5"
+    },
+
+    "plate06": {
+        "type": "transform",
+        "normal": "15",
+        "protan": "17",
+        "deutan": "17"
+    },
+
+    "plate07": {
+        "type": "transform",
+        "normal": "74",
+        "protan": "21",
+        "deutan": "21"
+    },
+
+    "plate08": {
+        "type": "transform",
+        "normal": "6",
+        "protan": "",
+        "deutan": ""
+    },
+
+    "plate09": {
+        "type": "transform",
+        "normal": "45",
+        "protan": "",
+        "deutan": ""
+    },
+
+    "plate10": {
+        "type": "transform",
+        "normal": "7",
+        "protan": "",
+        "deutan": ""
+    },
+
+    "plate11": {
+        "type": "transform",
+        "normal": "16",
+        "protan": "",
+        "deutan": ""
+    },
+
+    "plate12": {
+        "type": "transform",
+        "normal": "73",
+        "protan": "",
+        "deutan": ""
+    },
+
+
+    "plate13": {
+        "type": "transform",
+        "normal": "26",
+        "protan": "6",
+        "deutan": "2"
+    },
+
+    "plate14": {
+        "type": "transform",
+        "normal": "42",
+        "protan": "2",
+        "deutan": "4"
+    },
+
+    "plate15": {
+        "type": "transform",
+        "normal": "96",
+        "protan": "6",
+        "deutan": "9"
+    }
+
+
+ 
+}

@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+.venv/
+venv/
+env/
+
+# Local packaged dependencies
+desktop_app/vendor/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Codex/local workspace files
+.agents/
+.codex/
+output/
+tmp/
+scripts/
+문서/
+
