@@ -9,6 +9,7 @@ env/
 
 # Local packaged dependencies
 desktop_app/vendor/
+desktop_app/user_data/
 
 # OS and editor files
 .DS_Store
@@ -23,4 +24,3 @@ output/
 tmp/
 scripts/
 문서/
-

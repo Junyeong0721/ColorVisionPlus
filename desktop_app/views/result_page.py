@@ -118,7 +118,7 @@ class ResultPage(ctk.CTkFrame):
 
             self,
 
-            text="아래에서 결과를 확인하고 맞춤 설정을 적용해보세요.",
+            text="이 결과는 의학적 진단이 아닌 참고용입니다. 추천값을 적용한 뒤 직접 조절해보세요.",
 
             text_color="gray50",
 
@@ -451,12 +451,14 @@ class ResultPage(ctk.CTkFrame):
 
             bottom,
 
-            text="맞춤 설정 적용하기",
+            text="화면 보정 적용하기",
 
             width=280,
             height=60,
 
-            fg_color="#63C98A"
+            fg_color="#63C98A",
+
+            command=self.apply_recommended_filter
 
         )
 
@@ -568,4 +570,12 @@ class ResultPage(ctk.CTkFrame):
 
         self.parent.show_frame(
             IshiharaTestPage
+        )
+
+    # ======================================
+
+    def apply_recommended_filter(self):
+
+        self.parent.apply_test_result_to_user_mode(
+            self.result
         )

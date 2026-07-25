@@ -185,8 +185,8 @@ class IntroTestPage(ctk.CTkFrame):
         description = ctk.CTkLabel(
             content,
             text=(
-                "이시하라 테스트를 통해 자신의 색각 유형을 확인합니다.\n"
-                "정확한 결과를 위해 아래 안내사항을 확인해주세요."
+                "이시하라 테스트로 보정 시작점을 참고용으로 확인합니다.\n"
+                "편안한 환경에서 아래 안내사항을 확인해주세요."
             ),
             font=("맑은 고딕", 15),
             justify="center",
@@ -194,7 +194,33 @@ class IntroTestPage(ctk.CTkFrame):
         )
 
         description.pack(
-            pady=(12, 32)
+            pady=(12, 20)
+        )
+
+        self.start_button = ctk.CTkButton(
+
+            content,
+
+            text="테스트 시작하기   →",
+
+            width=320,
+
+            height=52,
+
+            corner_radius=14,
+
+            font=("맑은 고딕", 17, "bold"),
+
+            fg_color=self.GREEN,
+
+            hover_color=self.GREEN_HOVER,
+
+            command=self.start_test
+
+        )
+
+        self.start_button.pack(
+            pady=(0, 24)
         )
 
         notice_card = ctk.CTkFrame(
@@ -307,39 +333,6 @@ class IntroTestPage(ctk.CTkFrame):
                     fill="x",
                     padx=20
                 )
-
-        ctk.CTkLabel(
-            content,
-            text=""
-        ).pack(
-            pady=10
-        )
-
-        self.start_button = ctk.CTkButton(
-
-            content,
-
-            text="테스트 시작하기   →",
-
-            width=320,
-
-            height=52,
-
-            corner_radius=14,
-
-            font=("맑은 고딕", 17, "bold"),
-
-            fg_color=self.GREEN,
-
-            hover_color=self.GREEN_HOVER,
-
-            command=self.start_test
-
-        )
-
-        self.start_button.pack(
-            pady=(18, 0)
-        )
 
     # -------------------------------------------------
 
