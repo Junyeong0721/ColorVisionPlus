@@ -6,7 +6,7 @@ if os.path.isdir(VENDOR_DIR) and VENDOR_DIR not in sys.path:
     sys.path.insert(0, VENDOR_DIR)
 
 import customtkinter as ctk
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 from core.color_correction import default_options_for_type
 from core.settings_store import SettingsStore
@@ -280,138 +280,96 @@ class MainPage(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent, fg_color="#F8F9FA")
         self.parent = parent
+        self.card_icon_images = []
 
         self.pack_propagate(False)
 
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        logo_path = os.path.join(base_dir, "assets", "logo", "colorvision_logo.png")
-        self.logo_image = ctk.CTkImage(
-            light_image=Image.open(logo_path),
-            dark_image=Image.open(logo_path),
-            size=(132, 84),
+        self.main_assets_dir = os.path.join(base_dir, "assets", "main")
+
+        background = self.build_home_background(HOME_WIDTH, HOME_HEIGHT)
+        self.home_bg_image = ctk.CTkImage(
+            light_image=background,
+            dark_image=background,
+            size=(HOME_WIDTH, HOME_HEIGHT),
         )
 
-        self.logo_label = ctk.CTkLabel(
+        self.background_label = ctk.CTkLabel(
             self,
-            image=self.logo_image,
+            image=self.home_bg_image,
             text="",
         )
-        self.logo_label.pack(pady=(26, 4))
+        self.background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
-        self.title_label = ctk.CTkLabel(
-            self,
-            text="ColorVision+",
-            font=ctk.CTkFont(family="Arial", size=36, weight="bold"),
-            text_color="#212529",
-        )
-        self.title_label.pack()
+        card_width = 300
+        card_height = 90
+        gap_x = 20
+        gap_y = 20
+        start_x = (HOME_WIDTH - (card_width * 2 + gap_x)) // 2
+        start_y = 280
 
-        self.subtitle_label = ctk.CTkLabel(
-            self,
-            text="색각 이상 사용자를 위한 맞춤형 접근성 플랫폼\nMaking colors accessible for everyone.",
-            font=ctk.CTkFont(family="맑은 고딕", size=14),
-            text_color="#6C757D",
-            justify="center",
-        )
-        self.subtitle_label.pack(pady=(8, 28))
+        cards = [
+            ("user", "사용자 모드", "화면 보정 및 색상 필터 적용", "#E8F5E9", "#2E7D32", self.on_user_mode),
+            ("developer", "개발자/디자이너 모드", "시뮬레이션 및 접근성 분석", "#E3F2FD", "#1565C0", self.on_designer_mode),
+            ("test", "색각 유형 테스트", "이시하라 색각 테스트", "#F3E5F5", "#7B1FA2", self.on_test_mode),
+            ("settings", "설정", "앱 설정 및 환경 구성", "#FFF8E1", "#F57F17", self.on_settings_mode),
+        ]
 
-        current_profile = self.parent.current_profile
-        profile_text = (
-            f"최근 프로필: {current_profile.name}"
-            if current_profile is not None
-            else "처음이라면 사용자 모드에서 유형을 직접 선택하거나 테스트를 시작해보세요."
-        )
+        for index, card_data in enumerate(cards):
+            row = index // 2
+            col = index % 2
+            x = start_x + col * (card_width + gap_x)
+            y = start_y + row * (card_height + gap_y)
+            self.create_menu_card(x, y, card_width, card_height, *card_data)
 
-        self.profile_label = ctk.CTkLabel(
-            self,
-            text=profile_text,
-            font=ctk.CTkFont(family="맑은 고딕", size=13, weight="bold"),
-            text_color="#2E7D32",
-        )
-        self.profile_label.pack(pady=(0, 14))
+    def build_home_background(self, width, height):
+        bg_path = os.path.join(self.main_assets_dir, "home_bg.png")
+        logo_path = os.path.join(self.main_assets_dir, "home_logo.png")
 
-        self.menu_container = ctk.CTkFrame(
-            self,
-            fg_color="transparent",
-            width=724,
-            height=232,
-        )
-        self.menu_container.pack(padx=88, pady=(0, 20))
-        self.menu_container.pack_propagate(False)
-        self.menu_container.grid_columnconfigure((0, 1), weight=1, minsize=350)
-        self.menu_container.grid_rowconfigure((0, 1), weight=1, minsize=108)
+        if os.path.exists(bg_path):
+            image = Image.open(bg_path).convert("RGBA").resize((width, height), Image.Resampling.LANCZOS)
+        else:
+            image = Image.new("RGBA", (width, height), "#FBFCFD")
 
-        self.create_menu_card(
-            0,
-            0,
-            "U",
-            "사용자 모드",
-            "화면 보정 및 색상 필터 적용",
-            "#E8F5E9",
-            "#2E7D32",
-            self.on_user_mode,
-        )
-        self.create_menu_card(
-            0,
-            1,
-            "</>",
-            "개발자/디자이너 모드",
-            "시뮬레이션 및 접근성 분석",
-            "#E3F2FD",
-            "#1565C0",
-            self.on_designer_mode,
-        )
-        self.create_menu_card(
-            1,
-            0,
-            "T",
-            "색각 유형 테스트",
-            "이시하라 색각 테스트",
-            "#F3E5F5",
-            "#6A1B9A",
-            self.on_test_mode,
-        )
-        self.create_menu_card(
-            1,
-            1,
-            "⚙",
-            "설정",
-            "앱 설정 및 환경 구성",
-            "#FFF8E1",
-            "#F57F17",
-            self.on_settings_mode,
-        )
+        if os.path.exists(logo_path):
+            logo = Image.open(logo_path).convert("RGBA")
+            logo.thumbnail((280, 200), Image.Resampling.LANCZOS)
+            logo_x = (width - logo.width) // 2
+            image.paste(logo, (logo_x, 35), logo)
 
-        self.footer_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.footer_frame.pack(side="bottom", pady=(0, 24))
+        draw = ImageDraw.Draw(image)
+        font_title = self.load_font(36, bold=True)
+        font_subtitle = self.load_font(13)
+        font_english = self.load_font(11)
+        font_footer = self.load_font(10)
 
-        self.info_label = ctk.CTkLabel(
-            self.footer_frame,
-            text="ⓘ  |  GitHub",
-            font=ctk.CTkFont(size=13),
-            text_color="#495057",
-        )
-        self.info_label.pack()
+        draw.text((width // 2, 175), "ColorVision+", fill="#1E293B", font=font_title, anchor="mm")
+        draw.text((width // 2, 215), "색각 이상 사용자를 위한 맞춤형 접근성 플랫폼", fill="#475569", font=font_subtitle, anchor="mm")
+        draw.text((width // 2, 235), "Making colors accessible for everyone.", fill="#64748B", font=font_english, anchor="mm")
+        draw.text((width // 2, height - 20), "v0.1.0", fill="#94A3B8", font=font_footer, anchor="mm")
+        return image.convert("RGB")
 
-        self.version_label = ctk.CTkLabel(
-            self.footer_frame,
-            text="v0.1.0",
-            font=ctk.CTkFont(size=12),
-            text_color="#ADB5BD",
-        )
-        self.version_label.pack(pady=(5, 0))
+    def load_font(self, size, bold=False):
+        font_name = "malgunbd.ttf" if bold else "malgun.ttf"
+        windows_font = os.path.join(os.environ.get("WINDIR", "C:\\Windows"), "Fonts", font_name)
+        for font_path in (windows_font, font_name):
+            try:
+                return ImageFont.truetype(font_path, size)
+            except OSError:
+                continue
+        return ImageFont.load_default()
 
-    def create_menu_card(self, row, col, icon, title, desc, bg_color, text_color, command):
+    def create_menu_card(self, x, y, width, height, icon_type, title, desc, bg_color, text_color, command):
         card = ctk.CTkFrame(
-            self.menu_container,
-            width=350,
-            height=100,
+            self,
+            width=width,
+            height=height,
             fg_color="#FFFFFF",
-            corner_radius=12,
+            corner_radius=16,
             border_width=1,
-            border_color="#E9ECEF",
+            border_color="#F1F5F9",
         )
-        card.grid(row=row, column=col, padx=6, pady=6, sticky="nsew")
+        card.place(x=x, y=y)
         card.grid_propagate(False)
 
         card.grid_columnconfigure(0, weight=0)
@@ -426,14 +384,15 @@ class MainPage(ctk.CTkFrame):
             height=50,
             corner_radius=24,
         )
-        icon_box.grid(row=0, column=0, padx=(22, 16), sticky="w")
+        icon_box.grid(row=0, column=0, padx=(18, 12), sticky="w")
         icon_box.grid_propagate(False)
 
+        icon_image = self.create_card_icon(icon_type, text_color)
+        self.card_icon_images.append(icon_image)
         icon_label = ctk.CTkLabel(
             icon_box,
-            text=icon,
-            font=ctk.CTkFont(family="Arial", size=20, weight="bold"),
-            text_color=text_color,
+            image=icon_image,
+            text="",
             width=50,
             height=50,
             anchor="center",
@@ -447,8 +406,8 @@ class MainPage(ctk.CTkFrame):
         title_lbl = ctk.CTkLabel(
             text_frame,
             text=title,
-            font=ctk.CTkFont(family="맑은 고딕", size=15, weight="bold"),
-            text_color="#212529",
+            font=ctk.CTkFont(family="Malgun Gothic", size=13, weight="bold"),
+            text_color="#0F172A",
             anchor="w",
         )
         title_lbl.grid(row=0, column=0, sticky="ew")
@@ -456,23 +415,61 @@ class MainPage(ctk.CTkFrame):
         desc_lbl = ctk.CTkLabel(
             text_frame,
             text=desc,
-            font=ctk.CTkFont(family="맑은 고딕", size=12),
-            text_color="#868E96",
+            font=ctk.CTkFont(family="Malgun Gothic", size=10),
+            text_color="#64748B",
             anchor="w",
         )
-        desc_lbl.grid(row=1, column=0, sticky="ew", pady=(4, 0))
+        desc_lbl.grid(row=1, column=0, sticky="ew", pady=(1, 0))
 
         arrow_lbl = ctk.CTkLabel(
             card,
-            text="›",
-            font=ctk.CTkFont(family="Arial", size=24),
-            text_color="#CED4DA",
+            text=">",
+            font=ctk.CTkFont(family="Malgun Gothic", size=14, weight="bold"),
+            text_color="#CBD5E1",
             width=24,
             anchor="center",
         )
-        arrow_lbl.grid(row=0, column=2, padx=(6, 20), sticky="e")
+        arrow_lbl.grid(row=0, column=2, padx=(0, 18), sticky="e")
 
         self._bind_click(card, command)
+
+    def create_card_icon(self, icon_type, color):
+        scale = 3
+        size = 20
+        canvas_size = size * scale
+        image = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(image)
+        width = 5
+
+        if icon_type == "user":
+            draw.ellipse((20, 8, 40, 28), outline=color, width=width)
+            draw.arc((8, 30, 52, 68), 200, 340, fill=color, width=width)
+        elif icon_type == "developer":
+            draw.line((20, 15, 8, 30, 20, 45), fill=color, width=width)
+            draw.line((40, 15, 52, 30, 40, 45), fill=color, width=width)
+            draw.line((35, 12, 25, 48), fill=color, width=width)
+        elif icon_type == "test":
+            for row in range(3):
+                for col in range(3):
+                    cx = 18 + col * 12
+                    cy = 18 + row * 12
+                    draw.ellipse((cx - 4, cy - 4, cx + 4, cy + 4), fill=color)
+        elif icon_type == "settings":
+            draw.ellipse((20, 20, 40, 40), outline=color, width=width)
+            for x1, y1, x2, y2 in (
+                (30, 4, 30, 14),
+                (30, 46, 30, 56),
+                (4, 30, 14, 30),
+                (46, 30, 56, 30),
+                (11, 11, 18, 18),
+                (42, 42, 49, 49),
+                (11, 49, 18, 42),
+                (42, 18, 49, 11),
+            ):
+                draw.line((x1, y1, x2, y2), fill=color, width=width)
+
+        resized = image.resize((size, size), Image.Resampling.LANCZOS)
+        return ctk.CTkImage(light_image=resized, dark_image=resized, size=(size, size))
 
     def _bind_click(self, widget, command):
         widget.bind("<Button-1>", lambda _event: command())
