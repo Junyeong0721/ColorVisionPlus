@@ -1,413 +1,253 @@
 import os
-
 import customtkinter as ctk
-
 from PIL import Image
-
 from views.ishihara_test import IshiharaTestPage
 
 
 class IntroTestPage(ctk.CTkFrame):
 
-    BG_COLOR = "#F5F7F6"
+    BG_COLOR = "#F8FAFC"
     CARD_COLOR = "#FFFFFF"
 
-    GREEN = "#67C587"
-    GREEN_HOVER = "#54B174"
+    GREEN = "#52B788"
+    GREEN_HOVER = "#40916C"
 
-    TITLE_COLOR = "#1F2937"
-    SUB_COLOR = "#6B7280"
+    TITLE_COLOR = "#0F172A"
+    SUB_COLOR = "#64748B"
 
-    DIVIDER = "#E5E7EB"
-
-    CARD_RADIUS = 28
-
-    WINDOW_PADDING = 40
+    DIVIDER_COLOR = "#F1F5F9"
+    CARD_RADIUS = 24
 
     def __init__(self, parent):
-
         super().__init__(parent)
-
         self.parent = parent
 
-        self.configure(
-            fg_color=self.BG_COLOR
-        )
+        self.configure(fg_color=self.BG_COLOR)
 
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        assets_dir = os.path.join(
-            current_dir,
-            "..",
-            "assets",
-            "intro"
-        )
+        self.base_dir = os.path.dirname(current_dir)
+        assets_dir = os.path.join(self.base_dir, "assets", "intro")
 
-        self.icon_intro = ctk.CTkImage(
-            Image.open(
-                os.path.join(
-                    assets_dir,
-                    "intro_icon.png"
-                )
-            ),
-            size=(150, 150)
-        )
+        def load_img(filename, size):
+            path = os.path.join(assets_dir, filename)
+            if os.path.exists(path):
+                return ctk.CTkImage(Image.open(path), size=size)
+            return None
 
-        self.icon_light = ctk.CTkImage(
-            Image.open(
-                os.path.join(
-                    assets_dir,
-                    "light.png"
-                )
-            ),
-            size=(30, 30)
-        )
-
-        self.icon_monitor = ctk.CTkImage(
-            Image.open(
-                os.path.join(
-                    assets_dir,
-                    "monitor.png"
-                )
-            ),
-            size=(30, 30)
-        )
-
-        self.icon_eye = ctk.CTkImage(
-            Image.open(
-                os.path.join(
-                    assets_dir,
-                    "eye.png"
-                )
-            ),
-            size=(30, 30)
-        )
-
-        self.icon_clock = ctk.CTkImage(
-            Image.open(
-                os.path.join(
-                    assets_dir,
-                    "clock.png"
-                )
-            ),
-            size=(30, 30)
-        )
+        self.icon_intro = load_img("intro_icon.png", (140, 140))
+        self.icon_light = load_img("light.png", (28, 28))
+        self.icon_monitor = load_img("monitor.png", (28, 28))
+        self.icon_eye = load_img("eye.png", (28, 28))
+        self.icon_clock = load_img("clock.png", (28, 28))
+        self.icon_warning = load_img("warning.png", (26, 26))
 
         self.build_ui()
 
-    # -------------------------------------------------
-
     def build_ui(self):
+        main = ctk.CTkFrame(self, fg_color="transparent")
+        main.pack(fill="both", expand=True)
 
-        top_bar = ctk.CTkFrame(
-            self,
-            fg_color="transparent"
-        )
+        # 본문 영역
+        content_area = ctk.CTkFrame(main, fg_color="transparent")
+        content_area.pack(fill="both", expand=True)
 
-        top_bar.pack(
-            fill="x",
-            padx=35,
-            pady=(20, 0)
-        )
+        # 은은한 하단 물결 배경
+        bg_image_path = os.path.join(self.base_dir, "assets", "bg_wave.png")
+        if os.path.exists(bg_image_path):
+            bg_img = ctk.CTkImage(Image.open(bg_image_path), size=(1400, 260))
+            bg_label = ctk.CTkLabel(
+                content_area,
+                image=bg_img,
+                text="",
+                fg_color="transparent"
+            )
+            bg_label.place(relx=0.5, rely=1.0, anchor="s", relwidth=1.0)
+            bg_label.lower()
 
-        back_button = ctk.CTkButton(
-            top_bar,
-            text="← 메인으로",
-            width=120,
-            height=36,
-            fg_color="white",
-            hover_color="#EEF2F0",
-            text_color=self.TITLE_COLOR,
-            border_width=1,
-            border_color=self.DIVIDER,
-            command=self.parent.show_main_page
-        )
-
-        back_button.pack(
-            side="left"
-        )
-
-        title = ctk.CTkLabel(
-            self,
-            text="ColorVision+",
-            font=("맑은 고딕", 18, "bold"),
-            text_color=self.GREEN
-        )
-
-        title.pack(
-            pady=(8, 10)
-        )
+        # 카드 컨테이너
+        card_container = ctk.CTkFrame(content_area, fg_color="transparent")
+        card_container.pack(fill="both", expand=True, padx=50, pady=25)
 
         card = ctk.CTkFrame(
-            self,
-            width=900,
-            height=720,
+            card_container,
             corner_radius=self.CARD_RADIUS,
-            fg_color=self.CARD_COLOR
+            fg_color=self.CARD_COLOR,
+            border_width=1,
+            border_color="#F1F5F9"
         )
+        card.pack(fill="both", expand=True)
 
-        card.pack(
-            pady=10
-        )
+        # [요청3 반영] 카드 내부 상하 패딩을 25 -> 35 로 늘려서 하단 휑함을 해결
+        content = ctk.CTkFrame(card, fg_color="transparent")
+        content.pack(padx=60, pady=35, fill="both", expand=True)
 
-        card.pack_propagate(False)
-
-        content = ctk.CTkFrame(
-            card,
-            fg_color="transparent"
-        )
-
-        content.pack(
-            expand=True,
-            fill="both",
-            padx=55,
-            pady=40
-        )
-
-        image_label = ctk.CTkLabel(
-            content,
-            image=self.icon_intro,
-            text=""
-        )
-
-        image_label.pack(
-            pady=(0, 18)
-        )
+        # ----------------------------------------------------
+        # 상단 헤더
+        # ----------------------------------------------------
+        if self.icon_intro:
+            image_label = ctk.CTkLabel(content, image=self.icon_intro, text="")
+            image_label.pack(pady=(0, 8))
 
         page_title = ctk.CTkLabel(
             content,
             text="색각 유형 테스트",
-            font=("맑은 고딕", 30, "bold"),
+            font=("맑은 고딕", 25, "bold"),
             text_color=self.TITLE_COLOR
         )
+        page_title.pack(pady=(0, 6))
 
-        page_title.pack()
-
+        # [요청1 & 요청2 반영] 글자 크기 12.5 -> 14 로 키우고 카드와의 간격을 28px로 시원하게 배치
         description = ctk.CTkLabel(
             content,
             text=(
-                "이시하라 테스트로 보정 시작점을 참고용으로 확인합니다.\n"
-                "편안한 환경에서 아래 안내사항을 확인해주세요."
+                "이시하라 테스트를 통해 자신의 색각 유형을 확인해보세요.\n"
+                "정확한 결과를 위해 아래 안내사항을 확인해주세요."
             ),
-            font=("맑은 고딕", 15),
+            font=("맑은 고딕", 14),
             justify="center",
             text_color=self.SUB_COLOR
         )
+        description.pack(pady=(0, 28))
 
-        description.pack(
-            pady=(12, 20)
-        )
-
-        self.start_button = ctk.CTkButton(
-
-            content,
-
-            text="테스트 시작하기   →",
-
-            width=320,
-
-            height=52,
-
-            corner_radius=14,
-
-            font=("맑은 고딕", 17, "bold"),
-
-            fg_color=self.GREEN,
-
-            hover_color=self.GREEN_HOVER,
-
-            command=self.start_test
-
-        )
-
-        self.start_button.pack(
-            pady=(0, 24)
-        )
-
+        # ----------------------------------------------------
+        # 1. 안내사항 회색 박스
+        # ----------------------------------------------------
         notice_card = ctk.CTkFrame(
             content,
-            corner_radius=20,
-            fg_color="#FAFAFA"
+            corner_radius=16,
+            fg_color="#F8FAFC",
+            border_width=1,
+            border_color="#F1F5F9"
         )
+        notice_card.pack(fill="x", pady=(0, 18))
 
-        notice_card.pack(
-            fill="x"
-        )
         notices = [
-
             (
                 self.icon_light,
                 "밝은 환경에서 테스트하세요",
-                "주변이 너무 어둡거나 밝지 않은 곳에서 진행하는 것을 권장합니다."
+                "주변이 너무 어둡거나 밝지 않은 곳에서 테스트하는 것이 좋습니다."
             ),
-
             (
                 self.icon_monitor,
-                "모니터 색상을 확인하세요",
-                "블루라이트 필터나 색상 보정 기능은 꺼두는 것이 좋습니다."
+                "모니터 색상 설정을 확인하세요",
+                "색온도나 필터 기능이 꺼져 있는지 확인해주세요."
             ),
-
             (
                 self.icon_eye,
-                "보이는 그대로 선택하세요",
-                "정답을 맞히려고 하기보다 실제로 보이는 숫자를 선택해주세요."
+                "정답을 맞히려 하지 마세요",
+                "보이는 그대로의 숫자를 선택하는 것이 가장 중요합니다."
             ),
-
             (
                 self.icon_clock,
-                "테스트는 약 5~10분 정도 소요됩니다",
-                "총 15장의 플레이트가 제공됩니다."
+                "테스트 시간은 약 5~10분 소요됩니다",
+                "총 15장의 이미지로 구성되어 있습니다."
             )
-
         ]
 
         for index, (icon, title, desc) in enumerate(notices):
+            row = ctk.CTkFrame(notice_card, fg_color="transparent")
+            row.pack(fill="x", padx=24, pady=11)
 
-            row = ctk.CTkFrame(
-                notice_card,
-                fg_color="transparent"
-            )
+            if icon:
+                icon_label = ctk.CTkLabel(row, image=icon, text="")
+                icon_label.pack(side="left", padx=(0, 18), anchor="center")
 
-            row.pack(
-                fill="x",
-                padx=25,
-                pady=15
-            )
-
-            icon_label = ctk.CTkLabel(
-                row,
-                image=icon,
-                text=""
-            )
-
-            icon_label.pack(
-                side="left",
-                padx=(0, 18)
-            )
-
-            text_frame = ctk.CTkFrame(
-                row,
-                fg_color="transparent"
-            )
-
-            text_frame.pack(
-                side="left",
-                fill="x",
-                expand=True
-            )
+            text_frame = ctk.CTkFrame(row, fg_color="transparent")
+            text_frame.pack(side="left", fill="x", expand=True, anchor="center")
 
             title_label = ctk.CTkLabel(
                 text_frame,
                 text=title,
                 anchor="w",
-                font=("맑은 고딕", 15, "bold"),
+                font=("맑은 고딕", 13.5, "bold"),
                 text_color=self.TITLE_COLOR
             )
-
-            title_label.pack(
-                anchor="w"
-            )
+            title_label.pack(anchor="w")
 
             desc_label = ctk.CTkLabel(
                 text_frame,
                 text=desc,
                 anchor="w",
                 justify="left",
-                font=("맑은 고딕", 13),
+                font=("맑은 고딕", 12),
                 text_color=self.SUB_COLOR
             )
+            desc_label.pack(anchor="w", pady=(2, 0))
 
-            desc_label.pack(
-                anchor="w",
-                pady=(2, 0)
-            )
-
-            if index != len(notices) - 1:
-
+            if index < len(notices) - 1:
                 divider = ctk.CTkFrame(
                     notice_card,
                     height=1,
-                    fg_color=self.DIVIDER
+                    fg_color=self.DIVIDER_COLOR,
+                    corner_radius=0
                 )
+                divider.pack(fill="x", padx=20)
+                divider.pack_propagate(False)
 
-                divider.pack(
-                    fill="x",
-                    padx=20
-                )
+        # ----------------------------------------------------
+        # 2. 노란색 주의사항 박스
+        # ----------------------------------------------------
+        warning_card = ctk.CTkFrame(
+            content,
+            corner_radius=14,
+            fg_color="#FFFBEB",
+            border_width=1,
+            border_color="#FDE68A"
+        )
+        warning_card.pack(fill="x", pady=(0, 24))
 
-    # -------------------------------------------------
+        warning_inner = ctk.CTkFrame(warning_card, fg_color="transparent")
+        warning_inner.pack(padx=24, pady=14, fill="x")
+
+        if self.icon_warning:
+            warn_icon_lbl = ctk.CTkLabel(warning_inner, image=self.icon_warning, text="")
+            warn_icon_lbl.pack(side="left", padx=(0, 16), anchor="center")
+        else:
+            warn_icon_lbl = ctk.CTkLabel(
+                warning_inner,
+                text="⚠️",
+                font=("맑은 고딕", 20),
+                text_color="#D97706"
+            )
+            warn_icon_lbl.pack(side="left", padx=(0, 16), anchor="center")
+
+        warn_text_frame = ctk.CTkFrame(warning_inner, fg_color="transparent")
+        warn_text_frame.pack(side="left", fill="x", expand=True, anchor="center")
+
+        warn_text_1 = ctk.CTkLabel(
+            warn_text_frame,
+            text="•   본 테스트는 참고용입니다.",
+            font=("맑은 고딕", 13.5, "bold"),
+            text_color="#B45309",
+            anchor="w"
+        )
+        warn_text_1.pack(anchor="w")
+
+        warn_text_2 = ctk.CTkLabel(
+            warn_text_frame,
+            text="•   의학적 진단을 대신할 수 없으므로, 정확한 검사는 전문의와 상담하세요.",
+            font=("맑은 고딕", 13.5),
+            text_color="#B45309",
+            anchor="w"
+        )
+        warn_text_2.pack(anchor="w", pady=(2, 0))
+
+        # ----------------------------------------------------
+        # 3. 하단 테스트 시작 버튼
+        # ----------------------------------------------------
+        self.start_button = ctk.CTkButton(
+            content,
+            text="테스트 시작하기  >",
+            width=230,
+            height=46,
+            corner_radius=12,
+            font=("맑은 고딕", 15, "bold"),
+            fg_color=self.GREEN,
+            hover_color=self.GREEN_HOVER,
+            text_color="white",
+            command=self.start_test
+        )
+        self.start_button.pack(pady=(0, 0))
 
     def start_test(self):
-
-        self.parent.show_frame(
-            IshiharaTestPage
-        )
-
-
-# ---------------------------------------------------------
-# 단독 실행 테스트
-# ---------------------------------------------------------
-
-if __name__ == "__main__":
-
-    class PreviewApp(ctk.CTk):
-
-        def __init__(self):
-
-            super().__init__()
-
-            self.title("ColorVision+")
-
-            self.geometry("1400x900")
-
-            self.resizable(False, False)
-
-            ctk.set_appearance_mode("Light")
-            ctk.set_default_color_theme("green")
-
-            frame = IntroTestPage(self)
-
-            frame.pack(
-                fill="both",
-                expand=True
-            )
-
-        # 실제 프로젝트에서는 main.py의 show_frame을 사용한다.
-        # Preview에서는 버튼이 눌렸을 때 테스트 페이지 대신 안내창만 띄운다.
-
-        def show_frame(self, page):
-
-            popup = ctk.CTkToplevel(self)
-
-            popup.title("Preview")
-
-            popup.geometry("380x180")
-
-            ctk.CTkLabel(
-
-                popup,
-
-                text="프로젝트에서는\nIshiharaTestPage로 이동합니다.",
-
-                font=("맑은 고딕",16)
-
-            ).pack(
-                expand=True,
-                pady=20
-            )
-
-            ctk.CTkButton(
-
-                popup,
-
-                text="확인",
-
-                command=popup.destroy
-
-            ).pack(
-                pady=(0,20)
-            )
-
-
-    app = PreviewApp()
-
-    app.mainloop()
+        self.parent.show_frame(IshiharaTestPage)

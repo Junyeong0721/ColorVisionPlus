@@ -198,82 +198,133 @@ class AppContentHost(ctk.CTkFrame):
 
 
 class AppSidebar(ctk.CTkFrame):
-    BG = "#FBFEFD"
-    ACTIVE = "#EAF6EF"
-    TEXT = "#334E63"
-    MUTED = "#6B7F90"
-    ACCENT = "#27966A"
+    BG = "#FFFFFF"
+    ACTIVE_BG = "#EAF5EE"
+    HOVER_BG = "#F1F5F9"
+    TEXT_ACTIVE = "#2D6A4F"
+    TEXT_MAIN = "#334155"
+    TEXT_SUB = "#64748B"
 
     def __init__(self, app):
         super().__init__(app, fg_color=self.BG, corner_radius=0, width=SIDEBAR_WIDTH)
         self.app = app
         self.items = {}
+        self.icons = {}
+        self.wave_image = None
         self.grid_propagate(False)
+        self.pack_propagate(False)
+        self.assets_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
+        self.icons_dir = os.path.join(self.assets_dir, "icons")
+        self.load_icons()
         self.build_ui()
 
+    def load_icons(self):
+        for key, filename in {
+            "home": "home.png",
+            "user": "user.png",
+            "test": "test.png",
+            "developer": "developer.png",
+            "settings": "settings.png",
+            "help": "help.png",
+        }.items():
+            path = os.path.join(self.icons_dir, filename)
+            if os.path.exists(path):
+                self.icons[key] = ctk.CTkImage(Image.open(path), size=(20, 20))
+            else:
+                self.icons[key] = None
+
     def build_ui(self):
+        right_border = ctk.CTkFrame(self, width=1, fg_color="#E2E8F0", corner_radius=0)
+        right_border.pack(side="right", fill="y")
+
         ctk.CTkLabel(
             self,
             text="ColorVision+",
-            font=("Arial", 21, "bold"),
+            font=("Malgun Gothic", 19, "bold"),
             text_color="#1F2937",
             anchor="w",
-        ).pack(fill="x", padx=30, pady=(28, 54))
+            fg_color="transparent",
+        ).pack(fill="x", padx=24, pady=(28, 54))
 
-        self.add_item("home", "⌂", "홈", self.app.show_main_page)
-        self.add_item("user", "○", "사용자 모드", self.app.show_user_mode)
-        self.add_item("test", "◎", "색각 유형 테스트", self.app.show_test_intro)
-        self.add_item("developer", "▣", "개발자 모드", self.app.show_developer_mode)
-        self.add_item("settings", "⚙", "설정", self.app.show_settings_page)
+        self.add_item("home", self.icons["home"], "홈", self.app.show_main_page)
+        self.add_item("user", self.icons["user"], "사용자 모드", self.app.show_user_mode)
+        self.add_item("test", self.icons["test"], "색각 유형 테스트", self.app.show_test_intro)
+        self.add_item("developer", self.icons["developer"], "개발자 모드", self.app.show_developer_mode)
+        self.add_item("settings", self.icons["settings"], "설정", self.app.show_settings_page)
+
+        self.add_wave_background()
 
         ctk.CTkFrame(self, fg_color="transparent").pack(fill="both", expand=True)
-        self.add_static_item("?", "도움말")
+        self.add_static_item(self.icons["help"], "도움말")
+
+    def add_wave_background(self):
+        wave_path = os.path.join(self.assets_dir, "bg_sidewave.png")
+        if not os.path.exists(wave_path):
+            return
+
+        wave = Image.open(wave_path)
+        self.wave_image = ctk.CTkImage(light_image=wave, dark_image=wave, size=(SIDEBAR_WIDTH, 260))
+        wave_label = ctk.CTkLabel(self, image=self.wave_image, text="", fg_color="transparent")
+        wave_label.place(relx=0, rely=1, anchor="sw")
+        wave_label.lower()
 
     def add_item(self, key, icon, text, command):
-        item = self.create_item(icon, text)
-        item.pack(fill="x", padx=16, pady=8)
+        item = self.create_item(icon, text, command=command)
+        item.pack(fill="x", padx=16, pady=4)
         self.items[key] = item
-        self.bind_click(item, command)
 
     def add_static_item(self, icon, text):
-        item = self.create_item(icon, text)
+        item = self.create_item(icon, text, command=self.show_help)
         item.pack(fill="x", padx=16, pady=(8, 24))
 
-    def create_item(self, icon, text):
-        item = ctk.CTkFrame(self, fg_color="transparent", corner_radius=14, height=58)
-        item.pack_propagate(False)
-        icon_label = ctk.CTkLabel(item, text=icon, font=("Arial", 25), text_color=self.TEXT, width=48)
-        icon_label.pack(side="left", padx=(16, 8))
-        text_label = ctk.CTkLabel(
-            item,
-            text=text,
-            font=("맑은 고딕", 15),
-            text_color=self.TEXT,
+    def create_item(self, icon, text, command):
+        item = ctk.CTkButton(
+            self,
+            image=icon,
+            text=f"  {text}" if icon else text,
             anchor="w",
+            width=210,
+            height=46,
+            corner_radius=12,
+            fg_color="transparent",
+            hover_color=self.HOVER_BG,
+            text_color=self.TEXT_MAIN,
+            font=("Malgun Gothic", 14),
+            command=command,
         )
-        text_label.pack(side="left", fill="x", expand=True)
-        item.nav_icon = icon_label
-        item.nav_text = text_label
         return item
 
     def set_active(self, active_key):
         for key, item in self.items.items():
             is_active = key == active_key
-            item.configure(fg_color=self.ACTIVE if is_active else "transparent")
-            item.nav_icon.configure(text_color=self.ACCENT if is_active else self.TEXT)
-            item.nav_text.configure(
-                text_color=self.ACCENT if is_active else self.TEXT,
-                font=("맑은 고딕", 15, "bold" if is_active else "normal"),
+            item.configure(
+                fg_color=self.ACTIVE_BG if is_active else "transparent",
+                hover_color=self.ACTIVE_BG if is_active else self.HOVER_BG,
+                text_color=self.TEXT_ACTIVE if is_active else self.TEXT_MAIN,
+                font=("Malgun Gothic", 14, "bold" if is_active else "normal"),
             )
 
-    def bind_click(self, widget, command):
-        widget.bind("<Button-1>", lambda _event: command())
-        try:
-            widget.configure(cursor="hand2")
-        except ValueError:
-            pass
-        for child in widget.winfo_children():
-            self.bind_click(child, command)
+    def show_help(self):
+        popup = ctk.CTkToplevel(self.app)
+        popup.title("도움말")
+        popup.geometry("360x180")
+        popup.resizable(False, False)
+        popup.configure(fg_color="#FFFFFF")
+        ctk.CTkLabel(
+            popup,
+            text="도움말 기능은 준비 중입니다.",
+            font=("Malgun Gothic", 15, "bold"),
+            text_color=self.TEXT_MAIN,
+        ).pack(expand=True)
+        ctk.CTkButton(
+            popup,
+            text="확인",
+            width=90,
+            height=34,
+            fg_color="#52B788",
+            hover_color="#40916C",
+            command=popup.destroy,
+        ).pack(pady=(0, 24))
 
 
 class MainPage(ctk.CTkFrame):
