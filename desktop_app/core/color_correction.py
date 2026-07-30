@@ -19,12 +19,12 @@ TYPE_LABELS = {
 
 TYPE_DESCRIPTIONS = {
     "normal": "보정 없이 원본 색상을 표시합니다.",
-    "protanomaly": "적색 계열 구분을 돕도록 명도와 색상 차이를 강화합니다.",
-    "protanopia": "적색 계열 결손에 가까운 환경에서 구분성을 높입니다.",
-    "deuteranomaly": "녹색 계열과 갈색/적색 계열의 차이를 강화합니다.",
-    "deuteranopia": "녹색 계열 결손에 가까운 환경에서 구분성을 높입니다.",
-    "tritanomaly": "청색/황색 계열 차이를 더 뚜렷하게 만듭니다.",
-    "tritanopia": "청색 계열 결손에 가까운 환경에서 구분성을 높입니다.",
+    "protanomaly": "빨강을 주황/황색 계열로 이동시키고 초록과의 명도 차이를 키웁니다.",
+    "protanopia": "빨강을 주황/황색 계열로 더 강하게 이동시켜 초록과 구분되게 합니다.",
+    "deuteranomaly": "초록을 청록 계열로 이동시키고 적색 계열과의 명도/채도 차이를 키웁니다.",
+    "deuteranopia": "초록을 청록 계열로 더 강하게 이동시켜 적색 계열과 구분되게 합니다.",
+    "tritanomaly": "파랑을 보라/청록 계열로, 황색을 주황 계열로 이동시킵니다.",
+    "tritanopia": "파랑/황색 축을 더 강하게 분리해 두 색 계열의 차이를 키웁니다.",
 }
 
 
@@ -81,42 +81,44 @@ DEFAULT_TYPE_PRESETS = {
 }
 
 
-# Daltonization-style correction matrices.
+# Directed hue-separation matrices for fullscreen correction.
 #
-# These are linear transforms derived from color-deficiency simulation matrices:
-# corrected = original + remap_error * (original - simulated).
-# The goal is not to make colors "normal", but to move commonly confused
-# differences into channels that are easier for each CVD family to distinguish.
+# The goal is not to make colors look "normal"; it is to move commonly confused
+# hues onto neighboring axes that are easier to separate while preserving the
+# overall screen as much as possible:
+# - Protan: red -> orange/yellow, green mostly preserved with stronger luminance.
+# - Deutan: green -> cyan/teal, red mostly preserved with stronger contrast.
+# - Tritan: blue -> violet/cyan, yellow -> orange.
 CORRECTION_MATRICES = {
     "protanomaly": (
-        1.0, 0.0, 0.0, 0,
-        0.478897, 0.476911, 0.044192, 0,
-        0.597282, -0.688692, 1.091410, 0,
+        1.00, 0.03, 0.00, 0,
+        0.34, 0.94, 0.02, 0,
+        -0.10, 0.06, 1.00, 0,
     ),
     "protanopia": (
-        1.0, 0.0, 0.0, 0,
-        0.478897, 0.476911, 0.044192, 0,
-        0.597282, -0.688692, 1.091410, 0,
+        1.00, 0.04, 0.00, 0,
+        0.40, 0.92, 0.02, 0,
+        -0.12, 0.07, 1.00, 0,
     ),
     "deuteranomaly": (
-        1.436619, -0.631397, 0.194779, 0,
-        0.0, 1.0, 0.0, 0,
-        -0.184239, 0.186309, 0.997930, 0,
+        1.00, -0.06, 0.00, 0,
+        0.07, 0.95, 0.03, 0,
+        -0.55, 0.62, 1.00, 0,
     ),
     "deuteranopia": (
-        1.436619, -0.631397, 0.194779, 0,
-        0.0, 1.0, 0.0, 0,
-        -0.184239, 0.186309, 0.997930, 0,
+        1.00, -0.08, 0.00, 0,
+        0.08, 0.92, 0.03, 0,
+        -0.65, 0.72, 1.00, 0,
     ),
     "tritanomaly": (
-        0.741159, -0.407208, 0.666049, 0,
-        0.075098, 0.585234, 0.339668, 0,
-        0.0, 0.0, 1.0, 0,
+        1.00, 0.00, 0.28, 0,
+        0.06, 0.68, 0.30, 0,
+        0.00, -0.12, 1.00, 0,
     ),
     "tritanopia": (
-        0.741159, -0.407208, 0.666049, 0,
-        0.075098, 0.585234, 0.339668, 0,
-        0.0, 0.0, 1.0, 0,
+        1.00, 0.00, 0.34, 0,
+        0.08, 0.60, 0.38, 0,
+        0.00, -0.16, 1.00, 0,
     ),
 }
 

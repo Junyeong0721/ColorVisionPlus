@@ -511,9 +511,9 @@ class ResultPage(ctk.CTkFrame):
 
     def get_filter_description(self, result):
         if "Protan" in result or "적색약" in result:
-            return "적색 계열 색을 더 선명하게 보정해줍니다."
+            return "빨강을 주황/황색 쪽으로 이동시켜 초록과 구분하기 쉽게 합니다."
         elif "Deutan" in result or "녹색약" in result:
-            return "녹색 계열 색을 더 선명하게 보정해줍니다."
+            return "초록을 청록 쪽으로 이동시켜 적색 계열과의 차이를 키웁니다."
         else:
             return "기본 화면 설정을 유지하며 색감을 최적화합니다."
 

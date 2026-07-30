@@ -690,11 +690,11 @@ class UserModePage(ctk.CTkFrame):
 
     def tint_color(self) -> str:
         if self.options.cvd_type.startswith("protan"):
-            return "#4BA3FF"
+            return "#FFD166"
         if self.options.cvd_type.startswith("deuter"):
-            return "#FFB347"
+            return "#4DD0E1"
         if self.options.cvd_type.startswith("tritan"):
-            return "#E879F9"
+            return "#B56CFF"
         return "#FFFFFF"
 
     def tint_alpha(self) -> float:
@@ -770,13 +770,13 @@ class UserModePage(ctk.CTkFrame):
 
         if self.options.cvd_type.startswith("protan"):
             self.set_type_color("#FFF1EC", "#F4D8CF", "#D94B3D")
-            self.filter_desc.configure(text="적색 계열 색을 더 선명하게 구분하도록 보정합니다.")
+            self.filter_desc.configure(text="빨강은 주황/황색 쪽으로 이동시키고 초록은 유지해 명도 차이를 키웁니다.")
         elif self.options.cvd_type.startswith("deuter"):
             self.set_type_color("#EEF9F2", "#CFEEDB", "#36B26B")
-            self.filter_desc.configure(text="녹색 계열과 갈색/적색 계열의 구분을 강화합니다.")
+            self.filter_desc.configure(text="초록은 청록 계열로 이동시키고 적색은 유지해 명도/채도 차이를 키웁니다.")
         elif self.options.cvd_type.startswith("tritan"):
             self.set_type_color("#EEF4FF", "#D5E5FF", self.BLUE)
-            self.filter_desc.configure(text="청색/황색 계열의 차이를 더 또렷하게 만듭니다.")
+            self.filter_desc.configure(text="파랑은 보라/청록 계열로, 황색은 주황 계열로 이동시킵니다.")
         else:
             self.set_type_color("#F4F7F8", "#E3E9EC", "#DDE5EA")
             self.filter_desc.configure(text="원본에 가까운 화면을 유지합니다.")
