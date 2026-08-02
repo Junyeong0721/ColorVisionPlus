@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import ctypes
 import os
 from tkinter import messagebox, simpledialog
 
@@ -16,7 +15,6 @@ from core.color_correction import (
     default_options_for_type,
     simulate_cvd_hex,
 )
-from core.screen_overlay import WindowsScreenColorOverlay
 
 
 TYPE_TO_LABEL = TYPE_LABELS
@@ -41,8 +39,6 @@ class UserModePage(ctk.CTkFrame):
         super().__init__(parent, fg_color=self.BG)
         self.parent = parent
         self.store = parent.settings_store
-        self.overlay = WindowsScreenColorOverlay()
-        self.tint_overlay: ctk.CTkToplevel | None = None
         self.selected_profile_id = parent.current_profile.profile_id
         self._is_updating_controls = False
         self.slider_labels: dict[str, ctk.CTkLabel] = {}
@@ -50,22 +46,20 @@ class UserModePage(ctk.CTkFrame):
         self.toggle_buttons: list[ctk.CTkButton] = []
 
         if preset_options is None:
-            self.options = parent.current_profile.to_options()
+            self.options = parent.current_correction_options
             self.start_message = "준비됨 - 화면 보정 켜기를 누르면 적용됩니다."
         else:
             self.options = preset_options
+            self.parent.set_correction_options(preset_options)
             self.selected_profile_id = ""
             self.start_message = "추천값 준비됨 - 켜면 적용됩니다."
 
         self.build_ui()
         self.apply_options_to_controls()
         self.update_all_visuals()
-        self.update_status(self.start_message)
-        self.parent.bind_global("<Control-Alt-c>", self.toggle_overlay_from_hotkey)
+        self.sync_from_app(initial_message=self.start_message)
 
     def destroy(self):
-        self.stop_overlay()
-        self.parent.unbind_global("<Control-Alt-c>")
         super().destroy()
 
     def build_ui(self):
@@ -319,7 +313,7 @@ class UserModePage(ctk.CTkFrame):
 
         ctk.CTkLabel(
             control,
-            text="단축키: Ctrl+Alt+C",
+            text="오버레이 메뉴: Ctrl+Alt+C",
             font=("맑은 고딕", 12, "bold"),
             text_color=self.ACCENT_DARK,
             anchor="w",
@@ -607,120 +601,30 @@ class UserModePage(ctk.CTkFrame):
             self.bind_click(child, command)
 
     def toggle_overlay_from_hotkey(self, _event=None):
-        self.toggle_overlay()
+        self.parent.toggle_quick_overlay_menu()
 
     def toggle_overlay(self):
-        if self.is_overlay_active():
-            self.stop_overlay()
-        else:
-            self.start_overlay()
+        self.parent.toggle_screen_correction()
 
     def start_overlay(self):
-        fallback_reason = ""
-        try:
-            state = self.overlay.start(self.options)
-            self.update_overlay_ui(True, "Windows 색상 필터", state.message)
-            return
-        except Exception as exc:
-            fallback_reason = str(exc)
-
-        try:
-            self.start_tint_overlay()
-            message = "Windows 전체 화면 필터를 사용할 수 없어 투명 보정 레이어로 실행했습니다."
-            if fallback_reason:
-                message = f"{message} ({fallback_reason})"
-            self.update_overlay_ui(
-                True,
-                "투명 오버레이",
-                message,
-            )
-        except Exception:
-            self.stop_overlay()
-            self.update_status("현재 환경에서 화면 오버레이를 실행할 수 없습니다.", error=True)
+        self.parent.start_screen_correction()
 
     def stop_overlay(self):
-        if self.overlay.active:
-            try:
-                self.overlay.stop()
-            except Exception:
-                pass
-
-        if self.tint_overlay is not None:
-            try:
-                self.tint_overlay.destroy()
-            except Exception:
-                pass
-            self.tint_overlay = None
-
-        self.update_overlay_ui(False, "대기 중", "화면 보정이 꺼졌습니다.")
+        self.parent.stop_screen_correction()
 
     def is_overlay_active(self) -> bool:
-        return self.overlay.active or self.tint_overlay is not None
+        return self.parent.is_screen_correction_active()
 
     def apply_overlay_options(self):
-        if self.overlay.active:
-            try:
-                self.overlay.apply(self.options)
-                self.update_overlay_ui(True, "Windows 색상 필터", "조절값을 현재 화면에 반영했습니다.")
-            except Exception:
-                self.update_status("화면 보정 갱신에 실패했습니다. 다시 켜 주세요.", error=True)
-        elif self.tint_overlay is not None:
-            self.update_tint_overlay()
-            self.update_overlay_ui(True, "투명 오버레이", "조절값을 투명 오버레이에 반영했습니다.")
-
-    def start_tint_overlay(self):
-        overlay = ctk.CTkToplevel(self.parent)
-        overlay.overrideredirect(True)
-        overlay.attributes("-topmost", True)
-        overlay.configure(fg_color=self.tint_color())
-        overlay.attributes("-alpha", self.tint_alpha())
-
-        width = overlay.winfo_screenwidth()
-        height = overlay.winfo_screenheight()
-        overlay.geometry(f"{width}x{height}+0+0")
-        overlay.update_idletasks()
-        self.make_click_through(overlay)
-        self.tint_overlay = overlay
-
-    def update_tint_overlay(self):
-        if self.tint_overlay is None:
-            return
-        self.tint_overlay.configure(fg_color=self.tint_color())
-        self.tint_overlay.attributes("-alpha", self.tint_alpha())
-
-    def tint_color(self) -> str:
-        if self.options.cvd_type.startswith("protan"):
-            return "#FFD166"
-        if self.options.cvd_type.startswith("deuter"):
-            return "#4DD0E1"
-        if self.options.cvd_type.startswith("tritan"):
-            return "#B56CFF"
-        return "#FFFFFF"
-
-    def tint_alpha(self) -> float:
-        settings = self.store.load_settings()
-        base_opacity = float(settings.get("overlay_opacity", 0.35))
-        strength = max(8, int(self.options.correction_strength)) / 100
-        return max(0.04, min(0.45, base_opacity * strength))
-
-    def make_click_through(self, window):
-        if os.name != "nt":
-            return
-        hwnd = window.winfo_id()
-        style = ctypes.windll.user32.GetWindowLongW(hwnd, -20)
-        ctypes.windll.user32.SetWindowLongW(
-            hwnd,
-            -20,
-            style | 0x00080000 | 0x00000020 | 0x00000008,
-        )
+        self.parent.set_correction_options(self.options)
 
     def select_cvd_type(self, cvd_type: str):
         was_active = self.is_overlay_active()
         self.options = default_options_for_type(cvd_type)
         self.selected_profile_id = ""
+        self.parent.set_correction_options(self.options)
         self.apply_options_to_controls()
         self.update_all_visuals()
-        self.apply_overlay_options()
         label = TYPE_TO_LABEL.get(cvd_type, "일반 보기")
         if was_active:
             self.update_status(f"{label} 보정으로 바꾸고 현재 화면에 바로 반영했습니다.")
@@ -734,7 +638,7 @@ class UserModePage(ctk.CTkFrame):
         self.selected_profile_id = ""
         self.update_slider_label(key)
         self.update_all_visuals()
-        self.apply_overlay_options()
+        self.parent.set_correction_options(self.options)
         if not self.is_overlay_active():
             self.update_status("조절값이 준비되었습니다. 화면 보정 켜기를 누르면 전체 화면에 적용됩니다.")
 
@@ -751,10 +655,21 @@ class UserModePage(ctk.CTkFrame):
     def reset_to_type_defaults(self):
         self.options = default_options_for_type(self.options.cvd_type)
         self.selected_profile_id = ""
+        self.parent.set_correction_options(self.options)
         self.apply_options_to_controls()
         self.update_all_visuals()
-        self.apply_overlay_options()
         self.update_status("현재 색각 유형의 기본값으로 복원했습니다.")
+
+    def sync_from_app(self, initial_message: str | None = None):
+        self.options = self.parent.current_correction_options
+        self.apply_options_to_controls()
+        self.update_all_visuals()
+        message = initial_message or self.parent.screen_correction_message
+        self.update_overlay_ui(
+            self.parent.is_screen_correction_active(),
+            self.parent.screen_correction_backend,
+            message,
+        )
 
     def update_all_visuals(self):
         self.update_type_button_state()
